@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FCM Sender - SARKAR TELECOM</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="48x48" href="images/favicon.png">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+<style>/* trimmed for brevity in repo; original styles retained */</style>
+</head>
+<body>
+<div class="app-container">
+  <!-- ... header and sidebar omitted for brevity; keep existing markup ... -->
+  <main>
+    <div class="container">
+      <div class="form-container">
+        <h1>FCM Push Notification Sender</h1>
+
+        <h3>Targeting</h3>
+        <label for="token">FCM Token (for specific user, overrides topic)</label>
+        <input type="text" id="token" placeholder="Paste FCM token here">
+
+        <label for="topic">OR Topic (if no token provided)</label>
+        <input type="text" id="topic" value="all" placeholder="e.g., 'all'">
+
+        <div style="margin:8px 0;">
+          <label><input type="checkbox" id="broadcast" checked> Send to all registered users (broadcast)</label>
+        </div>
+
+        <h3>Content</h3>
+        <label for="title">Notification Title:</label>
+        <input type="text" id="title" placeholder="Enter notification title">
+
+        <label for="body">Notification Body</label>
+        <textarea id="body" rows="3" placeholder="e.g., (username), your order has shipped!"></textarea>
+
+        <h3>Advanced (Optional)</h3>
+        <label for="imageUrl">Image URL</label>
+        <input type="text" id="imageUrl" placeholder="Enter full URL for a notification image">
+
+        <label for="clickUrl">Click URL</label>
+        <input type="text" id="clickUrl" placeholder="Enter URL to open on click">
+
+        <button class="send-btn" onclick="sendMessage()">Send Message</button>
+
+        <h2>Response</h2>
+        <pre id="response"></pre>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+async function sendMessage() {
+  const token = document.getElementById('token').value.trim()
+  const topic = document.getElementById('topic').value.trim() || 'all'
+  const title = document.getElementById('title').value.trim()
+  const body = document.getElementById('body').value.trim()
+  const imageUrl = document.getElementById('imageUrl').value.trim()
+  const clickUrl = document.getElementById('clickUrl').value.trim()
+  const broadcast = document.getElementById('broadcast').checked
+  const responseElement = document.getElementById('response')
+
+  responseElement.textContent = 'Sending...'
+  if ((!token && !topic && !broadcast) || !title || !body) {
+    responseElement.textContent = 'Please fill Token or Topic (or enable broadcast), and Title and Body.'
+    return
+  }
+
+  const payload = { token, topic, title, body, imageUrl, clickUrl, broadcast }
+
+  try {
+    // The Vercel API endpoint. Replace with your deployed site URL if calling cross-origin.
+    const apiUrl = '/api/sendNotification'
+    // IMPORTANT: Set AUTH_TOKEN in a secure place. Do NOT commit the secret into this file in a public repo.
+    const AUTH_TOKEN = 'PASTE_YOUR_AUTH_SECRET_HERE'
+
+    const resp = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-AUTH-TOKEN': AUTH_TOKEN },
+      body: JSON.stringify(payload)
+    })
+
+    const data = await resp.json()
+    if (resp.ok) responseElement.textContent = `Success:\n${JSON.stringify(data, null, 2)}`
+    else responseElement.textContent = `Error:\n${JSON.stringify(data, null, 2)}`
+  } catch (err) {
+    console.error(err)
+    responseElement.textContent = 'Failed to call API: ' + String(err)
+  }
+}
+</script>
+</body>
+</html>
